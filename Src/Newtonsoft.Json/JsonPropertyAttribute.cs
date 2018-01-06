@@ -25,7 +25,7 @@
 
 using System;
 using Newtonsoft.Json.Serialization;
-
+#if !OPT_OUT_JSON_PROPERTY_AND_REQUIRED_ATTRIBUTE
 namespace Newtonsoft.Json
 {
     /// <summary>
@@ -221,3 +221,4 @@ namespace Newtonsoft.Json
         }
     }
 }
+#endif

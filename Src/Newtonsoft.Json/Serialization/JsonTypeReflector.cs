@@ -151,11 +151,13 @@ namespace Newtonsoft.Json.Serialization
 
         public static MemberSerialization GetObjectMemberSerialization(Type objectType, bool ignoreSerializableAttribute)
         {
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE            
             JsonObjectAttribute objectAttribute = GetCachedAttribute<JsonObjectAttribute>(objectType);
             if (objectAttribute != null)
             {
                 return objectAttribute.MemberSerialization;
             }
+#endif
 
 #if HAVE_DATA_CONTRACTS
             DataContractAttribute dataContractAttribute = GetDataContractAttribute(objectType);
@@ -172,6 +174,10 @@ namespace Newtonsoft.Json.Serialization
             }
 #endif
 
+#if OPT_OUT_NON_FIELD_MEMBERS
+            return MemberSerialization.Fields;
+#endif
+            
             // the default
             return MemberSerialization.OptOut;
         }
@@ -210,6 +216,7 @@ namespace Newtonsoft.Json.Serialization
             return (NamingStrategy)converterCreator(converterArgs);
         }
 
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE
         public static NamingStrategy GetContainerNamingStrategy(JsonContainerAttribute containerAttribute)
         {
             if (containerAttribute.NamingStrategyInstance == null)
@@ -224,6 +231,7 @@ namespace Newtonsoft.Json.Serialization
 
             return containerAttribute.NamingStrategyInstance;
         }
+#endif    
 
         private static Func<object[], object> GetCreator(Type type)
         {

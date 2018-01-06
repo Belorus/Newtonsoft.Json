@@ -97,6 +97,7 @@ namespace Newtonsoft.Json.Serialization
         internal JsonContainerContract(Type underlyingType)
             : base(underlyingType)
         {
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE 
             JsonContainerAttribute jsonContainerAttribute = JsonTypeReflector.GetCachedAttribute<JsonContainerAttribute>(underlyingType);
 
             if (jsonContainerAttribute != null)
@@ -112,6 +113,7 @@ namespace Newtonsoft.Json.Serialization
                 ItemReferenceLoopHandling = jsonContainerAttribute._itemReferenceLoopHandling;
                 ItemTypeNameHandling = jsonContainerAttribute._itemTypeNameHandling;
             }
-        }
+#endif    
+        }    
     }
 }

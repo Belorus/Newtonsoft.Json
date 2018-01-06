@@ -1,5 +1,7 @@
 ﻿using System;
 
+#if !OPT_OUT_EXTENSION_DATA
+
 namespace Newtonsoft.Json
 {
     /// <summary>
@@ -35,3 +37,4 @@ namespace Newtonsoft.Json
         }
     }
 }
+#endif

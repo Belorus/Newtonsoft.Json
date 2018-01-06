@@ -247,21 +247,26 @@ namespace Newtonsoft.Json.Serialization
                         {
                             // add members that are explicitly marked with JsonProperty/DataMember attribute
                             // or are a field if serializing just fields
+#if !OPT_OUT_JSON_PROPERTY_AND_REQUIRED_ATTRIBUTE
                             if (JsonTypeReflector.GetAttribute<JsonPropertyAttribute>(member) != null)
                             {
                                 serializableMembers.Add(member);
+                                continue;
                             }
                             else if (JsonTypeReflector.GetAttribute<JsonRequiredAttribute>(member) != null)
                             {
                                 serializableMembers.Add(member);
-                            }
-#if HAVE_DATA_CONTRACTS
-                            else if (dataContractAttribute != null && JsonTypeReflector.GetAttribute<DataMemberAttribute>(member) != null)
-                            {
-                                serializableMembers.Add(member);
+                                continue;
                             }
 #endif
-                            else if (memberSerialization == MemberSerialization.Fields && member.MemberType() == MemberTypes.Field)
+#if HAVE_DATA_CONTRACTS
+                            if (dataContractAttribute != null && JsonTypeReflector.GetAttribute<DataMemberAttribute>(member) != null)
+                            {
+                                serializableMembers.Add(member);
+                                continue;
+                            }
+#endif
+                            if (memberSerialization == MemberSerialization.Fields && member.MemberType() == MemberTypes.Field)
                             {
                                 serializableMembers.Add(member);
                             }
@@ -338,6 +343,7 @@ namespace Newtonsoft.Json.Serialization
 
             Func<string, string> extensionDataNameResolver = null;
 
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE        
             JsonObjectAttribute attribute = JsonTypeReflector.GetCachedAttribute<JsonObjectAttribute>(contract.NonNullableUnderlyingType);
             if (attribute != null)
             {
@@ -350,6 +356,7 @@ namespace Newtonsoft.Json.Serialization
                     extensionDataNameResolver = s => namingStrategy.GetDictionaryKey(s);
                 }
             }
+#endif
 
             if (extensionDataNameResolver == null)
             {
@@ -401,15 +408,18 @@ namespace Newtonsoft.Json.Serialization
                 }
             }
 
+#if !OPT_OUT_EXTENSION_DATA
             MemberInfo extensionDataMember = GetExtensionDataMemberForType(contract.NonNullableUnderlyingType);
             if (extensionDataMember != null)
             {
                 SetExtensionDataDelegates(contract, extensionDataMember);
             }
+#endif
 
             return contract;
         }
 
+        #if !OPT_OUT_EXTENSION_DATA
         private MemberInfo GetExtensionDataMemberForType(Type type)
         {
             IEnumerable<MemberInfo> members = GetClassHierarchyForType(type).SelectMany(baseType =>
@@ -539,6 +549,7 @@ namespace Newtonsoft.Json.Serialization
 
             contract.ExtensionDataValueType = valueType;
         }
+    #endif
 
         // leave as class instead of struct
         // will be always return as an interface and boxed
@@ -753,13 +764,17 @@ namespace Newtonsoft.Json.Serialization
 #endif
         private void InitializeContract(JsonContract contract)
         {
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE
             JsonContainerAttribute containerAttribute = JsonTypeReflector.GetCachedAttribute<JsonContainerAttribute>(contract.NonNullableUnderlyingType);
             if (containerAttribute != null)
             {
                 contract.IsReference = containerAttribute._isReference;
-            }
+            }     
+#endif
 #if HAVE_DATA_CONTRACTS
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE
             else
+#endif
             {
                 DataContractAttribute dataContractAttribute = JsonTypeReflector.GetDataContractAttribute(contract.NonNullableUnderlyingType);
                 // doesn't have a null value
@@ -784,7 +799,9 @@ namespace Newtonsoft.Json.Serialization
                                                     ReflectionUtils.GetDefaultConstructor(contract.CreatedType) == null);
             }
 
+#if !OPT_OUT_CALLBACKS
             ResolveCallbackMethods(contract, contract.NonNullableUnderlyingType);
+#endif
         }
 
         private void ResolveCallbackMethods(JsonContract contract, Type t)
@@ -969,7 +986,7 @@ namespace Newtonsoft.Json.Serialization
         {
             JsonDictionaryContract contract = new JsonDictionaryContract(objectType);
             InitializeContract(contract);
-
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE
             JsonContainerAttribute containerAttribute = JsonTypeReflector.GetAttribute<JsonContainerAttribute>(objectType);
             if (containerAttribute?.NamingStrategyType != null)
             {
@@ -977,6 +994,7 @@ namespace Newtonsoft.Json.Serialization
                 contract.DictionaryKeyResolver = s => namingStrategy.GetDictionaryKey(s);
             }
             else
+#endif
             {
                 contract.DictionaryKeyResolver = ResolveDictionaryKey;
             }
@@ -1106,7 +1124,7 @@ namespace Newtonsoft.Json.Serialization
         {
             JsonDynamicContract contract = new JsonDynamicContract(objectType);
             InitializeContract(contract);
-
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE
             JsonContainerAttribute containerAttribute = JsonTypeReflector.GetAttribute<JsonContainerAttribute>(objectType);
             if (containerAttribute?.NamingStrategyType != null)
             {
@@ -1114,6 +1132,7 @@ namespace Newtonsoft.Json.Serialization
                 contract.PropertyNameResolver = s => namingStrategy.GetDictionaryKey(s);
             }
             else
+#endif    
             {
                 contract.PropertyNameResolver = ResolveDictionaryKey;
             }
@@ -1150,6 +1169,7 @@ namespace Newtonsoft.Json.Serialization
             }
 
             Type t = ReflectionUtils.EnsureNotNullableType(objectType);
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE
             JsonContainerAttribute containerAttribute = JsonTypeReflector.GetCachedAttribute<JsonContainerAttribute>(t);
 
             if (containerAttribute is JsonObjectAttribute)
@@ -1166,6 +1186,7 @@ namespace Newtonsoft.Json.Serialization
             {
                 return CreateDictionaryContract(objectType);
             }
+#endif
 
             if (t == typeof(JToken) || t.IsSubclassOf(typeof(JToken)))
             {
@@ -1436,44 +1457,49 @@ namespace Newtonsoft.Json.Serialization
             }
 #endif
 
+#if !OPT_OUT_JSON_PROPERTY_AND_REQUIRED_ATTRIBUTE
             JsonPropertyAttribute propertyAttribute = JsonTypeReflector.GetAttribute<JsonPropertyAttribute>(attributeProvider);
             JsonRequiredAttribute requiredAttribute = JsonTypeReflector.GetAttribute<JsonRequiredAttribute>(attributeProvider);
+#endif
 
-            string mappedName;
-            bool hasSpecifiedName;
+            string mappedName = name;
+            bool hasSpecifiedName = false;
+#if !OPT_OUT_JSON_PROPERTY_AND_REQUIRED_ATTRIBUTE
             if (propertyAttribute?.PropertyName != null)
             {
                 mappedName = propertyAttribute.PropertyName;
                 hasSpecifiedName = true;
             }
+#endif
 #if HAVE_DATA_CONTRACTS
-            else if (dataMemberAttribute?.Name != null)
+#if !OPT_OUT_JSON_PROPERTY_AND_REQUIRED_ATTRIBUTE
+            else 
+#endif
+            if (dataMemberAttribute?.Name != null)
             {
                 mappedName = dataMemberAttribute.Name;
                 hasSpecifiedName = true;
             }
 #endif
-            else
-            {
-                mappedName = name;
-                hasSpecifiedName = false;
-            }
 
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE
             JsonContainerAttribute containerAttribute = JsonTypeReflector.GetAttribute<JsonContainerAttribute>(declaringType);
-
-            NamingStrategy namingStrategy;
+#endif
+    
+            NamingStrategy namingStrategy = NamingStrategy;
+            
+#if !OPT_OUT_JSON_PROPERTY_AND_REQUIRED_ATTRIBUTE            
             if (propertyAttribute?.NamingStrategyType != null)
             {
                 namingStrategy = JsonTypeReflector.CreateNamingStrategyInstance(propertyAttribute.NamingStrategyType, propertyAttribute.NamingStrategyParameters);
             }
+#endif
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE            
             else if (containerAttribute?.NamingStrategyType != null)
             {
                 namingStrategy = JsonTypeReflector.GetContainerNamingStrategy(containerAttribute);
             }
-            else
-            {
-                namingStrategy = NamingStrategy;
-            }
+#endif    
 
             if (namingStrategy != null)
             {
@@ -1487,6 +1513,7 @@ namespace Newtonsoft.Json.Serialization
             property.UnderlyingName = name;
 
             bool hasMemberAttribute = false;
+#if !OPT_OUT_JSON_PROPERTY_AND_REQUIRED_ATTRIBUTE
             if (propertyAttribute != null)
             {
                 property._required = propertyAttribute._required;
@@ -1505,6 +1532,7 @@ namespace Newtonsoft.Json.Serialization
                 property.ItemTypeNameHandling = propertyAttribute._itemTypeNameHandling;
             }
             else
+#endif
             {
                 property.NullValueHandling = null;
                 property.ReferenceLoopHandling = null;
@@ -1526,22 +1554,28 @@ namespace Newtonsoft.Json.Serialization
 #endif
             }
 
+#if !OPT_OUT_JSON_PROPERTY_AND_REQUIRED_ATTRIBUTE
             if (requiredAttribute != null)
             {
                 property._required = Required.Always;
                 hasMemberAttribute = true;
             }
+#endif
 
             property.HasMemberAttribute = hasMemberAttribute;
 
-            bool hasJsonIgnoreAttribute =
-                JsonTypeReflector.GetAttribute<JsonIgnoreAttribute>(attributeProvider) != null
-                    // automatically ignore extension data dictionary property if it is public
-                || JsonTypeReflector.GetAttribute<JsonExtensionDataAttribute>(attributeProvider) != null
-#if HAVE_NON_SERIALIZED_ATTRIBUTE
-                || JsonTypeReflector.IsNonSerializable(attributeProvider)
+            bool hasJsonIgnoreAttribute = false;
+#if !OPT_OUT_JSON_IGNORE_ATTRIBUTE
+            hasJsonIgnoreAttribute |= JsonTypeReflector.GetAttribute<JsonIgnoreAttribute>(attributeProvider) != null;
 #endif
-                ;
+                    // automatically ignore extension data dictionary property if it is public
+#if !OPT_OUT_EXTENSION_DATA                
+            hasJsonIgnoreAttribute |= JsonTypeReflector.GetAttribute<JsonExtensionDataAttribute>(attributeProvider) != null;
+#endif
+#if HAVE_NON_SERIALIZED_ATTRIBUTE
+            hasJsonIgnoreAttribute |= JsonTypeReflector.IsNonSerializable(attributeProvider);
+#endif
+                
 
             if (memberSerialization != MemberSerialization.OptIn)
             {
@@ -1563,12 +1597,13 @@ namespace Newtonsoft.Json.Serialization
             // resolve converter for property
             // the class type might have a converter but the property converter takes precedence
             property.Converter = JsonTypeReflector.GetJsonConverter(attributeProvider);
-
+#if !OPT_OUT_DEFAULT_VALUE_ATTRIBUTE
             DefaultValueAttribute defaultValueAttribute = JsonTypeReflector.GetAttribute<DefaultValueAttribute>(attributeProvider);
             if (defaultValueAttribute != null)
             {
                 property.DefaultValue = defaultValueAttribute.Value;
             }
+#endif            
 
             allowNonPublicAccess = false;
 #pragma warning disable 618

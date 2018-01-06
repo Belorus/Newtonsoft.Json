@@ -171,24 +171,27 @@ namespace Newtonsoft.Json.Schema
 
         private string GetTitle(Type type)
         {
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE
             JsonContainerAttribute containerAttribute = JsonTypeReflector.GetCachedAttribute<JsonContainerAttribute>(type);
 
             if (!string.IsNullOrEmpty(containerAttribute?.Title))
             {
                 return containerAttribute.Title;
             }
-
+#endif
             return null;
         }
 
         private string GetDescription(Type type)
         {
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE            
             JsonContainerAttribute containerAttribute = JsonTypeReflector.GetCachedAttribute<JsonContainerAttribute>(type);
 
             if (!string.IsNullOrEmpty(containerAttribute?.Description))
             {
                 return containerAttribute.Description;
             }
+#endif    
 
 #if HAVE_ADO_NET
             DescriptionAttribute descriptionAttribute = ReflectionUtils.GetAttribute<DescriptionAttribute>(type);
@@ -200,12 +203,14 @@ namespace Newtonsoft.Json.Schema
 
         private string GetTypeId(Type type, bool explicitOnly)
         {
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE
             JsonContainerAttribute containerAttribute = JsonTypeReflector.GetCachedAttribute<JsonContainerAttribute>(type);
 
             if (!string.IsNullOrEmpty(containerAttribute?.Id))
             {
                 return containerAttribute.Id;
             }
+#endif    
 
             if (explicitOnly)
             {
@@ -292,8 +297,11 @@ namespace Newtonsoft.Json.Schema
 
                         CurrentSchema.Id = GetTypeId(type, false);
 
+                        bool allowNullItem = true;
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE
                         JsonArrayAttribute arrayAttribute = JsonTypeReflector.GetCachedAttribute<JsonArrayAttribute>(type);
-                        bool allowNullItem = (arrayAttribute == null || arrayAttribute.AllowNullItems);
+                        allowNullItem = (arrayAttribute == null || arrayAttribute.AllowNullItems);
+#endif
 
                         Type collectionItemType = ReflectionUtils.GetCollectionItemType(type);
                         if (collectionItemType != null)

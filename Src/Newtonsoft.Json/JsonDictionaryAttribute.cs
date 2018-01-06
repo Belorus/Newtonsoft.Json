@@ -22,7 +22,7 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
-
+#if !OPT_OUT_JSON_CONTAINER_ATTRIBUTE
 using System;
 
 namespace Newtonsoft.Json
@@ -50,3 +50,5 @@ namespace Newtonsoft.Json
         }
     }
 }
+
+#endif

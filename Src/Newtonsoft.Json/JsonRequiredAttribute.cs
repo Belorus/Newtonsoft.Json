@@ -26,7 +26,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-
+#if !OPT_OUT_JSON_PROPERTY_AND_REQUIRED_ATTRIBUTE
 namespace Newtonsoft.Json
 {
     /// <summary>
@@ -37,3 +37,4 @@ namespace Newtonsoft.Json
     {
     }
 }
+#endif

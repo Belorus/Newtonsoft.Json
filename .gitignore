@@ -14,6 +14,7 @@ _ReSharper.*
 *.resharper.user
 .vs/
 .idea/
+.vscode/
 *.lock.json
 *.nuget.props
 *.nuget.targets

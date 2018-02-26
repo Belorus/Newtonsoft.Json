@@ -80,7 +80,7 @@ namespace Newtonsoft.Json.Serialization
 #if HAVE_DYNAMIC
             new ExpandoObjectConverter(),
 #endif
-#if (HAVE_XML_DOCUMENT || HAVE_XLINQ)
+#if (HAVE_XML_DOCUMENT || HAVE_XLINQ) && !OPT_OUT_XML
             new XmlNodeConverter(),
 #endif
 #if HAVE_ADO_NET

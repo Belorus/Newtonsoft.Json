@@ -23,7 +23,7 @@
 // OTHER DEALINGS IN THE SOFTWARE.
 #endregion
 
-#if (HAVE_XML_DOCUMENT || HAVE_XLINQ)
+#if (HAVE_XML_DOCUMENT || HAVE_XLINQ) && !OPT_OUT_XML
 
 #if HAVE_BIG_INTEGER
 using System.Numerics;

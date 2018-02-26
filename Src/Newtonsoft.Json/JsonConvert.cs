@@ -857,7 +857,7 @@ namespace Newtonsoft.Json
         #endregion
 
         #region Xml
-#if HAVE_XML_DOCUMENT
+#if HAVE_XML_DOCUMENT && !OPT_OUT_XML
         /// <summary>
         /// Serializes the <see cref="XmlNode"/> to a JSON string.
         /// </summary>
@@ -937,7 +937,7 @@ namespace Newtonsoft.Json
         }
 #endif
 
-#if HAVE_XLINQ
+#if HAVE_XLINQ && !OPT_OUT_XML
         /// <summary>
         /// Serializes the <see cref="XNode"/> to a JSON string.
         /// </summary>

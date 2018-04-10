@@ -1,7 +1,7 @@
 ﻿properties {
   $zipFileName = "Json110r1.zip"
   $majorVersion = "11.0"
-  $majorWithReleaseVersion = "11.0.1"
+  $majorWithReleaseVersion = "11.0.1-cut"
   $nugetPrerelease = $null
   $version = GetVersion $majorWithReleaseVersion
   $packageId = "Newtonsoft.Json"
@@ -46,7 +46,7 @@
 
 framework '4.6x86'
 
-task default -depends Test,Package
+task default -depends Package
 
 # Ensure a clean working directory
 task Clean {
